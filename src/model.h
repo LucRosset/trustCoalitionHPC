@@ -1,14 +1,39 @@
 #ifndef  __MODEL_H__
 #define  __MODEL_H__
 
+#include <repast_hpc/AgentId.h>
+#include <repast_hpc/AgentRequest.h>
+#include <repast_hpc/Point.h>
+#include <repast_hpc/Properties.h>
+#include <repast_hpc/RepastProcess.h>
+#include <repast_hpc/Schedule.h>
+#include <repast_hpc/SharedContext.h>
+#include <repast_hpc/SharedSpace.h>
+#include <repast_hpc/SVDataSetBuilder.h>
+#include <repast_hpc/Utilities.h>
 
+#include "landAgent.h"
 
+namespace mpi = boost::mpi;
 
 class LandModel {
 
 private:
 
 	int rank;
+	int stopAt;
+	// Grid size
+	int sizeX, sizeY;
+	// Process size
+	int dimX, dimY;
+	repast::SharedContext<Bird> agents;
+	repast::SharedGrids<LandAgent>::SharedWrappedGrid* grid;
+	repast::Properties props;
+	ProviderUpdater providerUpdater;
+
+	int payoffT, payoffR, payoffP, payoffS;
+	float tax;
+	int deltaTrust;
 
 public:
 
@@ -17,19 +42,34 @@ public:
 	repast::SharedGrids<LandAgent>::SharedStrictGrid* grid;
 	repast::DataSet* dataSet;
 
-	LandModel (boost::mpi::communicator* world);
+	LandModel (const std::string& propsFile, int argc, char* argv[], mpi::communicator* world);
 
-	~LandModel ();
+	virtual ~LandModel ();
+
+	void init ();
+
+	void initSchedule ();
 
 	/*
 	 * Creates a vector with pointers to all the agent's neighbours
 	 */
-	void neighbourhood (LandAgent* agent, bool moore, bool wrapped);
+	void neighbourhood (LandAgent* agent, bool moore);
+
+	void step ();
+
+	void synchAgents();
+
+	//// Step sub-methods ////
 
 	/*
-	 * Calculate each agent's payoff for this step and apply tax for members of coalitions
+	 * Calculate each agent's payoff for this step
 	 */
 	void updatePayoff(LandAgent* agent);
+
+	/*
+	 * Leaders apply taxes and distribute total payoff among coalition members
+	 */
+	void applyTax (LandAgent* lead);
 
 	/*
 	 * Join or leave a coalition, if not a leader
@@ -39,11 +79,7 @@ public:
 	/*
 	 * If the agent is the leader of a coalition and there are no members left in it, the agent becomes independent
 	 */
-	void amIStillLeader (LandAgent* agent);
-
-	void step ();
-
-	void initSchedule ();
+	void amIStillLeader (LandAgent* lead);
 
 };
 

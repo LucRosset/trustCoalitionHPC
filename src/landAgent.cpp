@@ -19,9 +19,9 @@ int LandAgent::getX () {
 	return coord[0];
 }
 int LandAgent::getY () {
-	return coord[y];
+	return coord[1];
 }
-repast::Point<int> LandAgent::getCoord () {
+const int* LandAgent::getCoord () const{
 	return coord;
 }
 void LandAgent::setX (int x) {
@@ -30,8 +30,9 @@ void LandAgent::setX (int x) {
 void LandAgent::setY (int y) {
 	coord[1] = y;
 }
-void LandAgent::setCoord (repast::Point<int> _coord) {
-	coord = _coord;
+void LandAgent::setCoord (int* _coord) {
+	coord[0] = _coord[0];
+	coord[1] = _coord[1];
 }
 
 repast::AgentId LandAgent::getLeaderId () {
@@ -89,11 +90,20 @@ void LandAgent::decTrust (int delta) {
 	trustLeader -= delta;
 }
 
-std::vector<LandAgent*> LandAgent::getNeighbours () {
+int LandAgent::getThreshold () {
+	return threshold;
+}
+
+void LandAgent::setThreshold (int _threshold) {
+	threshold = _threshold;
+}
+
+const std::vector<LandAgent*> LandAgent::getNeighbours () const {
 	return neighbours;
 }
 void LandAgent::setNeighbours (std::vector<LandAgent*> _neighbours) {
-	neighbours = _neighbours;
+	for (int i=0; i<_neighbours.size(); i++)
+		neighbours[i] = _neighbours[i];
 }
 
 float LandAgent::randomF () {

@@ -9,7 +9,7 @@ private:
 
 	repast::AgentId id;
 	int rank;
-	repast::Point<int> coord;
+	int coord[2];
 	repast::AgentId leaderId;
 	float payoff;
 	int strategy;
@@ -17,6 +17,7 @@ private:
 	int NumOfDefNeighbours;
 	int considerTrust;
 	int trustLeader;
+	int threshold;
 	std::vector<LandAgent*> neighbours;
 
 public:
@@ -30,10 +31,10 @@ public:
 
 	int getX ();
 	int getY ();
-	repast::Point<int> getCoord ();
+	const int* getCoord () const;
 	void setX (int x);
 	void setY (int y);
-	void setCoord (repast::Point<int> _coord);
+	void setCoord (int* _coord);
 
 	repast::AgentId getLeaderId ();
 	void setLeaderId (repast::AgentId _leaderId);
@@ -58,7 +59,10 @@ public:
 	void incTrust (int delta);
 	void decTrust (int delta);
 
-	std::vector<LandAgent*> getNeighbours ();
+	int getThreshold ();
+	void setThreshold (int _threshold);
+
+	const std::vector<LandAgent*> getNeighbours () const;
 	void setNeighbours (std::vector<LandAgent*> _neighbours);
 
 	/*
@@ -72,7 +76,7 @@ public:
 	void decideAction();
 };
 
-struct LandAgentPack {
+struct LandAgentPackage {
 	friend class boost::serialization::access;
 	template <class Archive>
 
@@ -87,12 +91,13 @@ struct LandAgentPack {
 		ar & NumOfDefNeighbours;
 		ar & considerTrust;
 		ar & trustLeader;
+		ar & threshold;
 		ar & neighbours;
 	}
 
 	repast::AgentId id;
 	int rank;
-	repast::Point<int> coord;
+	int coord[2];
 	repast::AgentId leaderId;
 	float payoff;
 	int strategy;
@@ -100,6 +105,7 @@ struct LandAgentPack {
 	int NumOfDefNeighbours;
 	int considerTrust;
 	int trustLeader;
+	int threshold;
 	std::vector<LandAgent*> neighbours;
 };
 
