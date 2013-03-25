@@ -88,6 +88,8 @@ void LandModel::initSchedule () {
 			repast::RepastProcess::instance()->getScheduleRunner().schedule());
 }
 
+
+// CONSIDERING A TORUS AS GRID!!!
 void LandModel::neighbourhood (LandAgent* agent, bool moore) {
 	std::vector<LandAgent*> neighbours(0);
 	LandAgent* out;
@@ -142,7 +144,9 @@ void LandModel::step () {
 	for (int i = 0; i < dimX * dimY; i++) {
 		repast::AgentId id = repast::AgentId(i, rank, 0);
 		if (grid->getLocation(id, position)) {
-			manageCoalition(agents.getAgent(id));
+			LandAgent* lead = agents.getAgent(id);
+			if (lead->getId() == lead->getLeaderId())
+				amIStillLeader(agents.getAgent(id));
 		}
 	}
 }
