@@ -22,7 +22,10 @@ private:
 
 public:
 
-	LandAgent (repast::AgentId _id, int _rank, int _coord[2], float _payoff, int _strategy, int _action, int _numOfDefNeighbours, int _considerTrust);
+	LandAgent (repast::AgentId _id, int _rank);
+
+	LandAgent (repast::AgentId _id, int _rank, int _coord[2], float _payoff, int _strategy, int _action,
+			int _numOfDefNeighbours, int _considerTrust, int _trustLeader, int _threshold);
 
 	~LandAgent ();
 

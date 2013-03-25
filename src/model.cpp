@@ -199,7 +199,8 @@ void LandModel::updatePayoff(LandAgent* agent) {
 
 void LandModel::applyTax (LandAgent* lead) {
 	int total = 0;
-	std::vector<AgentId> coalition(0);
+	int coalSize;
+	std::vector<LandAgent*> coalition(0);
 	repast::AgentId leadId = lead->getId();
 
 	for (int i = 0; i < dimX * dimY; i++) {
@@ -207,12 +208,18 @@ void LandModel::applyTax (LandAgent* lead) {
 		if (grid->getLocation(id, position)) {
 			LandAgent* ag = agents.getAgent(id);
 			if (ag->getLeaderId() == leadId && ag->getId() != lead->getId()) {
-				coalition.push_back(id);
-
-				// TODO
-
+				coalition.push_back(ag);
+				total += ag->getPayoff();
 			}
 		}
+	}
+	coalSize = coalition.size();
+	if (coalSize != 0) {
+		float calcTax = total * (tax/100.0);
+		lead->setPayoff(lead->getPayoff() + calcTax);
+		total = (total - calcTax)/(1.0 * coalSize);
+		for (std::vector<LandAgent*>::iterator it = coalition.begin(); it != coalition.end(); ++it)
+			*it->setPayoff(total);
 	}
 }
 

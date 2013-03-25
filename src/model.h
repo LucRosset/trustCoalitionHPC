@@ -32,7 +32,7 @@ private:
 	ProviderUpdater providerUpdater;
 
 	int payoffT, payoffR, payoffP, payoffS;
-	float tax;
+	int tax;
 	int deltaTrust;
 
 public:
