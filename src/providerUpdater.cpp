@@ -8,14 +8,17 @@ ProviderUpdater::~ProviderUpdater() {
 }
 
 LandAgent* ProviderUpdater::createAgent(LandAgentPackage& content) {
-	return new LandAgent(content.getId(), content.heading, content.speed);
+	return new LandAgent(content.id, content.rank, content.coord, content.payoff, content.strategy, content.action,
+			content.numOfDefNeighbours, content.considerTrust, content.trustLeader, content.threshold, content.neighbours);
 }
 
 void ProviderUpdater::createAgents(std::vector<LandAgentPackage>& contents,
 		std::vector<LandAgent*>& out) {
 	for (std::vector<LandAgentPackage>::iterator agent = contents.begin();
 			agent != contents.end(); ++agent) {
-		out.push_back(new LandAgent(agent->getId(), agent->heading, agent->speed)); ////////////////TODO
+		out.push_back(new LandAgent(agent->getId(), agent->getRank(), agent->getCoord(), agent->getPayoff(), agent->getStrategy(),
+				agent->getAction(), agent->getNumOfDefNeighbours(), agent->getConsiderTrust(), agent->getTrustLeader(),
+				agent->getThreshold(), agent->getNeighbours()));
 	}
 }
 
@@ -23,7 +26,7 @@ void ProviderUpdater::provideContent(LandAgent* agent,
 		std::vector<LandAgentPackage>& out) {
 	repast::AgentId id = agent->getId();
 	LandAgentPackage package = { id.id(), id.startingRank(), id.agentType(),
-			agent->getHeading(), agent->getSpeed() }; //////////////////////////////////////////////TODO
+			agent->getHeading(), agent->getSpeed() };
 	out.push_back(package);
 }
 

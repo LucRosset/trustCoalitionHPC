@@ -52,6 +52,13 @@ public:
 
 	/*
 	 * Creates a vector with pointers to all the agent's neighbours
+	 * Considering the grid strict
+	 */
+	void neighbourhood (LandAgent* agent, bool moore)
+
+	/*
+	 * Creates a vector with pointers to all the agent's neighbours
+	 * Considering the grid a torus
 	 */
 	void neighbourhood (LandAgent* agent, bool moore);
 

@@ -1,12 +1,30 @@
 #include "landAgent.h"
 
-LandAgent::LandAgent (repast::AgentId _id, int _rank) {
-
+LandAgent::LandAgent (repast::AgentId _id, int _rank, int _strategy, int considerTrust, int _threshold) {
+	id = _id;
+	rank = _rank;
+	payoff = 0;
+	strategy = _strategy;
+	action = std::rand()%2;
+	numOfDefNeighbours = 0;
+	considerTrust = _considerTrust;
+	threshold = _threshold;
 }
 
 LandAgent::LandAgent (repast::AgentId _id, int _rank, int _coord[2], float _payoff, int _strategy, int _action,
-			int _numOfDefNeighbours, int _considerTrust, int _trustLeader, int _threshold) {
-
+		int _numOfDefNeighbours, int _considerTrust, int _trustLeader, int _threshold, std::vector<LandAgent*> _neighbours) {
+	id = _id;
+	rank = _rank;
+	coord[0] = _coord[0];
+	coord = _coord[1];
+	payoff = _payoff;
+	strategy = _strategy;
+	action = _action;
+	numOfDefNeighbours = _numOfDefNeighbours;
+	considerTrust = _considerTrust;
+	trustLeader = _trustLeader;
+	threshold = _threshold;
+	neighbours(_neighbours);
 }
 
 LandAgent::~LandAgent () {
@@ -18,6 +36,14 @@ repast::AgentId& LandAgent::getId() {
 }
 const repast::AgentId& LandAgent::getId() const {
 	return id;
+}
+
+int LandAgent::getRank () {
+	return rank;
+}
+
+void LandAgent::setRank (int _rank) {
+	rank = _rank;
 }
 
 int LandAgent::getX () {
@@ -107,8 +133,7 @@ const std::vector<LandAgent*> LandAgent::getNeighbours () const {
 	return neighbours;
 }
 void LandAgent::setNeighbours (std::vector<LandAgent*> _neighbours) {
-	for (int i=0; i<_neighbours.size(); i++)
-		neighbours[i] = _neighbours[i];
+	neighbours(_neighbours);
 }
 
 float LandAgent::randomF () {

@@ -51,6 +51,7 @@ LandModel::LandModel (const std::string& propsFile, int argc, char* argv[], mpi:
 		agent = new LandAgent(id, i * 2, i / 2);
 		agents.addAgent(agent);
 		grid->moveTo(agent, repast::Point<int>(originX + (i / dimX), originY + (i % dimY)));
+		agent->setCoord( ( originX+(i/dimX) , originY+(i%dimY) ) );
 		std::cout << id << " " << rank << " " << originX + (i / dimX) << " " << originY + (i % dimY) << std::endl;
 	}
 
@@ -60,7 +61,7 @@ LandModel::LandModel (const std::string& propsFile, int argc, char* argv[], mpi:
 	for (int i = 0; i < dimX * dimY; i++) {
 		repast::AgentId id = repast::AgentId(i, rank, 0);
 		if (grid->getLocation(id, position)) {
-			neighbourhood(agents.getAgent(id), moore);
+			neighbourhoodTORUS(agents.getAgent(id), moore);
 		}
 	}
 
@@ -88,9 +89,61 @@ void LandModel::initSchedule () {
 			repast::RepastProcess::instance()->getScheduleRunner().schedule());
 }
 
-
-// CONSIDERING A TORUS AS GRID!!!
 void LandModel::neighbourhood (LandAgent* agent, bool moore) {
+	std::vector<LandAgent*> neighbours(0);
+	LandAgent* out;
+	int coord[2] = agent->getCoord();
+	// if true, then the agent has a neighbour to that direction:
+	bool N=false;
+	bool S=false;
+	bool E=false;
+	bool W=false;
+	if ((coord[0]+1) % sizeX)
+		E = true;
+	if (coord[0])
+		W = true;
+	if ((coord[1]+1) % sizeY)
+		S = true;
+	if (coord[1])
+		N = true;
+
+	if (E) {
+		out = grid->getObjectAt(repast::Point<int>(coord[0] + 1, coord[1]));
+		neighbours.push_back(out);
+	}
+	if (W) {
+		out = grid->getObjectAt(repast::Point<int>(coord[0] - 1, coord[1]));
+		neighbours.push_back(out);
+	}
+	if (S) {
+		out = grid->getObjectAt(repast::Point<int>(coord[0], coord[1] + 1));
+		neighbours.push_back(out);
+	}
+	if (N) {
+		out = grid->getObjectAt(repast::Point<int>(coord[0], coord[1] - 1));
+		neighbours.push_back(out);
+	}
+	if (moore) {
+		if (E && S) {
+			out = grid->getObjectAt(repast::Point<int>(coord[0] + 1, coord[1] + 1));
+			neighbours.push_back(out);
+		}
+		if (W && S) {
+			out = grid->getObjectAt(repast::Point<int>(coord[0] - 1, coord[1] + 1));
+			neighbours.push_back(out);
+		}
+		if (E && N) {
+			out = grid->getObjectAt(repast::Point<int>(coord[0] + 1, coord[1] - 1));
+			neighbours.push_back(out);
+		}
+		if (W && N) {
+			out = grid->getObjectAt(repast::Point<int>(coord[0] - 1, coord[1] - 1));
+			neighbours.push_back(out);
+		}
+	}
+}
+
+void LandModel::neighbourhoodTORUS (LandAgent* agent, bool moore) {
 	std::vector<LandAgent*> neighbours(0);
 	LandAgent* out;
 	int coord[2] = agent->getCoord();
@@ -117,14 +170,14 @@ void LandModel::neighbourhood (LandAgent* agent, bool moore) {
 }
 
 void LandModel::step () {
-	// Update Payoff
+	// Update Payoff; All
 	for (int i = 0; i < dimX * dimY; i++) {
 		repast::AgentId id = repast::AgentId(i, rank, 0);
 		if (grid->getLocation(id, position)) {
 			updatePayoff(agents.getAgent(id));
 		}
 	}
-	// Apply Tax
+	// Apply Tax; Only leaders
 	for (int i = 0; i < dimX * dimY; i++) {
 		repast::AgentId id = repast::AgentId(i, rank, 0);
 		if (grid->getLocation(id, position)) {
@@ -133,14 +186,16 @@ void LandModel::step () {
 				applyTax(lead);
 		}
 	}
-	// Manage Coalitions
+	// Manage Coalitions; Only non-leaders
 	for (int i = 0; i < dimX * dimY; i++) {
 		repast::AgentId id = repast::AgentId(i, rank, 0);
 		if (grid->getLocation(id, position)) {
-			manageCoalition(agents.getAgent(id));
+			LandAgent* ag = agents.getAgent(id);
+			if (id != ag->getId())
+				manageCoalition(ag);
 		}
 	}
-	// Manage Leaders
+	// Manage Leaders; Only leaders
 	for (int i = 0; i < dimX * dimY; i++) {
 		repast::AgentId id = repast::AgentId(i, rank, 0);
 		if (grid->getLocation(id, position)) {
@@ -200,13 +255,13 @@ void LandModel::updatePayoff(LandAgent* agent) {
 void LandModel::applyTax (LandAgent* lead) {
 	int total = 0;
 	int coalSize;
+	LandAgent* ag;
 	std::vector<LandAgent*> coalition(0);
 	repast::AgentId leadId = lead->getId();
 
-	for (int i = 0; i < dimX * dimY; i++) {
-		repast::AgentId id = repast::AgentId(i, rank, 0);
-		if (grid->getLocation(id, position)) {
-			LandAgent* ag = agents.getAgent(id);
+	for (int i = 0; i < dimX; i++) {
+		for (int j = 0; j < dimY; j++) {
+			ag = grid->getObjectAt(repast::Point<int>(i, j));
 			if (ag->getLeaderId() == leadId && ag->getId() != lead->getId()) {
 				coalition.push_back(ag);
 				total += ag->getPayoff();
@@ -224,6 +279,8 @@ void LandModel::applyTax (LandAgent* lead) {
 }
 
 void LandModel::manageCoalition (LandAgent* agent) {
+	if (agent->getId() == agent->getLeaderId()) ///////////////// Devo deixar isso aqui? Fica redundante...
+		return;
 	bool worstPayoff = true;
 	std::vector<LandAgent*> neighbours = agent->getNeighbours();
 	LandAgent* best = neighbours[0];
@@ -253,10 +310,10 @@ void LandModel::manageCoalition (LandAgent* agent) {
 }
 
 void LandModel::amIStillLeader (LandAgent* lead) {
-	for (int i = 0; i < dimX * dimY; i++) {
-		repast::AgentId id = repast::AgentId(i, rank, 0);
-		if (grid->getLocation(id, position)) {
-			LandAgent* ag = agents.getAgent(id);
+	LandAgent* ag;
+	for (int i = 0; i < dimX; i++) {
+		for (int j = 0; j < dimY; j++) {
+			ag = grid->getObjectAt(repast::Point<int>(i, j));
 			if (ag->getLeaderId() == leadId && ag->getId() != lead->getId()) {
 				return;
 			}
