@@ -3,91 +3,103 @@
 
 #include <repast_hpc/AgentId.h>
 #include <repast_hpc/AgentRequest.h>
+#include <repast_hpc/initialize_random.h>
 #include <repast_hpc/Point.h>
 #include <repast_hpc/Properties.h>
+#include <repast_hpc/Random.h>
 #include <repast_hpc/RepastProcess.h>
 #include <repast_hpc/Schedule.h>
 #include <repast_hpc/SharedContext.h>
 #include <repast_hpc/SharedSpace.h>
-#include <repast_hpc/SVDataSetBuilder.h>
 #include <repast_hpc/Utilities.h>
 
 #include "landAgent.h"
+#include "providerUpdater.h"
 
 namespace mpi = boost::mpi;
+
+// Grid definition
+const std::string GRID_MIN_X = "grid.min.x";
+const std::string GRID_MIN_Y = "grid.min.y";
+const std::string GRID_MAX_X = "grid.max.x";
+const std::string GRID_MAX_Y = "grid.max.y";
+const std::string GRID_BUFFER = "grid.buffer";
+
+// Processes - Multiplication must be the total number of grid positions
+const std::string PROC_X = "proc.per.x";
+const std::string PROC_Y = "proc.per.y";
+
+// Payoff matrix
+const std::string PAYOFF_T = "payoff.temptation";
+const std::string PAYOFF_R = "payoff.reward";
+const std::string PAYOFF_P = "payoff.punishment";
+const std::string PAYOFF_S = "payoff.sucker";
+
+// Model attributes
+const std::string MODEL_ROUNDS = "model.rounds";
+const std::string MODEL_TAX = "model.tax";
+const std::string MODEL_CONSIDER_TRUST = "model.consider-trust";
+const std::string MODEL_DELTA_TRUST = "model.delta-trust";
+const std::string MODEL_TRUST_THRESHOLD = "model.trust-threshold";
+const std::string MODEL_STRATEGY_TYPE = "model.strategy-type";
+const std::string MODEL_NEIGHBORHOOD = "model.neighborhood";
 
 class LandModel {
 
 private:
-
 	int rank;
-	int stopAt;
+
 	// Grid size
-	int sizeX, sizeY;
+	int sizeX;
+	int sizeY;
+
 	// Process size
-	int dimX, dimY;
-	repast::SharedContext<Bird> agents;
+	int dimX;
+	int dimY;
+
+	// Payoff values
+	int payoffT;
+	int payoffR;
+	int payoffP;
+	int payoffS;
+
+	// Model information
+	int rounds;
+	double tax;
+	double considerTrust;
+	double deltaTrust;
+	double trustThreshold;
+	int strategyType;
+	int neighborhood;
+
+	// General
+	repast::SharedContext<LandAgent> agents;
 	repast::SharedGrids<LandAgent>::SharedWrappedGrid* grid;
 	repast::Properties props;
 	ProviderUpdater providerUpdater;
 
-	int payoffT, payoffR, payoffP, payoffS;
-	int tax;
-	int deltaTrust;
-
 public:
+	LandModel(const std::string& propsFile, int argc, char* argv[],
+			mpi::communicator* world);
 
-	repast::SharedContext<LandAgent> agents;
-	repast::SharedNetwork <LandAgent, repast::RepastEdge<LandAgent> >* net;
-	repast::SharedGrids<LandAgent>::SharedStrictGrid* grid;
-	repast::DataSet* dataSet;
+	virtual ~LandModel();
 
-	LandModel (const std::string& propsFile, int argc, char* argv[], mpi::communicator* world);
+	void provideContent(const repast::AgentRequest& request,
+			std::vector<LandAgentPackage>& out);
 
-	virtual ~LandModel ();
+	void init();
 
-	void init ();
+	void initSchedule(repast::ScheduleRunner& runner);
 
-	void initSchedule ();
+	void neighbourhood(LandAgent* agent, bool moore);
 
-	/*
-	 * Creates a vector with pointers to all the agent's neighbours
-	 * Considering the grid strict
-	 */
-	void neighbourhood (LandAgent* agent, bool moore)
+	void step();
 
-	/*
-	 * Creates a vector with pointers to all the agent's neighbours
-	 * Considering the grid a torus
-	 */
-	void neighbourhood (LandAgent* agent, bool moore);
+	void applyTax(LandAgent* lead);
 
-	void step ();
+	void amIStillLeader(LandAgent* lead);
 
 	void synchAgents();
-
-	//// Step sub-methods ////
-
-	/*
-	 * Calculate each agent's payoff for this step
-	 */
-	void updatePayoff(LandAgent* agent);
-
-	/*
-	 * Leaders apply taxes and distribute total payoff among coalition members
-	 */
-	void applyTax (LandAgent* lead);
-
-	/*
-	 * Join or leave a coalition, if not a leader
-	 */
-	void manageCoalition (LandAgent* agent);
-
-	/*
-	 * If the agent is the leader of a coalition and there are no members left in it, the agent becomes independent
-	 */
-	void amIStillLeader (LandAgent* lead);
-
 };
 
 #endif // __MODEL_H__

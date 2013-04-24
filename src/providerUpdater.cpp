@@ -8,17 +8,21 @@ ProviderUpdater::~ProviderUpdater() {
 }
 
 LandAgent* ProviderUpdater::createAgent(LandAgentPackage& content) {
-	return new LandAgent(content.id, content.rank, content.coord, content.payoff, content.strategy, content.action,
-			content.numOfDefNeighbours, content.considerTrust, content.trustLeader, content.threshold, content.neighbours);
+	return new LandAgent(content.getId(), content.x, content.y,
+			content.strategy, content.considerTrust, content.deltaTrust,
+			content.trustThreshold, content.isIndependent, content.isLeader,
+			content.action);
 }
 
 void ProviderUpdater::createAgents(std::vector<LandAgentPackage>& contents,
 		std::vector<LandAgent*>& out) {
 	for (std::vector<LandAgentPackage>::iterator agent = contents.begin();
 			agent != contents.end(); ++agent) {
-		out.push_back(new LandAgent(agent->getId(), agent->getRank(), agent->getCoord(), agent->getPayoff(), agent->getStrategy(),
-				agent->getAction(), agent->getNumOfDefNeighbours(), agent->getConsiderTrust(), agent->getTrustLeader(),
-				agent->getThreshold(), agent->getNeighbours()));
+		out.push_back(
+				new LandAgent(agent->getId(), agent->x, agent->y,
+						agent->strategy, agent->considerTrust,
+						agent->deltaTrust, agent->trustThreshold,
+						agent->isIndependent, agent->isLeader, agent->action));
 	}
 }
 
@@ -26,7 +30,10 @@ void ProviderUpdater::provideContent(LandAgent* agent,
 		std::vector<LandAgentPackage>& out) {
 	repast::AgentId id = agent->getId();
 	LandAgentPackage package = { id.id(), id.startingRank(), id.agentType(),
-			agent->getHeading(), agent->getSpeed() };
+			agent->getX(), agent->getY(), agent->getStrategy(),
+			agent->getConsiderTrust(), agent->getDeltaTrust(),
+			agent->getTrustThreshold(), agent->getIsIndependent(),
+			agent->getIsLeader(), agent->getAction() };
 	out.push_back(package);
 }
 
@@ -37,9 +44,13 @@ void ProviderUpdater::provideContent(const repast::AgentRequest& request,
 		repast::AgentId id = ids[i];
 
 		if (agents.contains(id)) {
-			LandAgent* ag = agents.getAgent(id);
-			LandAgentPackage content = { id.id(), id.startingRank(), id.agentType(),
-					ag->getHeading(), ag->getSpeed() }; ////////////////////////////////////////////TODO
+			LandAgent* agent = agents.getAgent(id);
+			LandAgentPackage content = { id.id(), id.startingRank(),
+					id.agentType(), agent->getX(), agent->getY(),
+					agent->getStrategy(), agent->getConsiderTrust(),
+					agent->getDeltaTrust(), agent->getTrustThreshold(),
+					agent->getIsIndependent(), agent->getIsLeader(),
+					agent->getAction() };
 			out.push_back(content);
 		}
 	}
@@ -50,15 +61,13 @@ void ProviderUpdater::updateAgent(const LandAgentPackage& content) {
 
 	if (agents.contains(id)) {
 		LandAgent* copy = agents.getAgent(id);
-		copy->setCoord(content.coord);
-		copy->setLeaderId(content.leaderId);
-		copy->setPayoff(content.payoff);
+		copy->setXY(content.x, content.y);
 		copy->setStrategy(content.strategy);
-		copy->setAction(content.action);
-		copy->setNumOfDefNeighbours(content.numOfDefNeighbours);
 		copy->setConsiderTrust(content.considerTrust);
-		copy->setTrustLeader(content.trustLeader);
-		copy->setThreshold(content.threshold);
-		copy->setNeighbours(content.neighbours);
+		copy->setDeltaTrust(content.deltaTrust);
+		copy->setTrustThreshold(content.trustThreshold);
+		copy->setIsIndependent(content.isIndependent);
+		copy->setIsLeader(content.isLeader);
+		copy->setAction(content.action);
 	}
 }

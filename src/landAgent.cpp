@@ -1,34 +1,51 @@
 #include "landAgent.h"
 
-LandAgent::LandAgent (repast::AgentId _id, int _rank, int _strategy, int considerTrust, int _threshold) {
+LandAgent::LandAgent(repast::AgentId _id, int _strategy, bool _considerTrust,
+		double _deltaTrust, double _trustThreshold) {
 	id = _id;
-	rank = _rank;
+	x = 0;
+	y = 0;
+	strategy = _strategy;
+
+	considerTrust = _considerTrust;
+	deltaTrust = _deltaTrust;
+	trustThreshold = _trustThreshold;
+
+	isIndependent = true;
+	isLeader = false;
+
+	//leaderId
+	trustLeader = 0;
+
+	action = 0;
 	payoff = 0;
-	strategy = _strategy;
-	action = std::rand()%2;
-	numOfDefNeighbours = 0;
-	considerTrust = _considerTrust;
-	threshold = _threshold;
+	prevDefectors = 0;
 }
 
-LandAgent::LandAgent (repast::AgentId _id, int _rank, int _coord[2], float _payoff, int _strategy, int _action,
-		int _numOfDefNeighbours, int _considerTrust, int _trustLeader, int _threshold, std::vector<LandAgent*> _neighbours) {
+LandAgent::LandAgent(repast::AgentId _id, int _x, int _y, int _strategy,
+		bool _considerTrust, double _deltaTrust, double _trustThreshold,
+		bool _isIndependent, bool _isLeader, int _action) {
 	id = _id;
-	rank = _rank;
-	coord[0] = _coord[0];
-	coord = _coord[1];
-	payoff = _payoff;
+	x = _x;
+	y = _y;
 	strategy = _strategy;
-	action = _action;
-	numOfDefNeighbours = _numOfDefNeighbours;
+
 	considerTrust = _considerTrust;
-	trustLeader = _trustLeader;
-	threshold = _threshold;
-	neighbours(_neighbours);
+	deltaTrust = _deltaTrust;
+	trustThreshold = _trustThreshold;
+
+	isIndependent = _isIndependent;
+	isLeader = _isLeader;
+
+	//leaderId
+	trustLeader = 0;
+
+	action = _action;
+	payoff = 0;
+	prevDefectors = 0;
 }
 
-LandAgent::~LandAgent () {
-
+LandAgent::~LandAgent() {
 }
 
 repast::AgentId& LandAgent::getId() {
@@ -38,119 +55,144 @@ const repast::AgentId& LandAgent::getId() const {
 	return id;
 }
 
-int LandAgent::getRank () {
-	return rank;
+int LandAgent::getX() {
+	return x;
+}
+int LandAgent::getY() {
+	return y;
+}
+void LandAgent::setXY(int _x, int _y) {
+	x = _x;
+	y = _y;
 }
 
-void LandAgent::setRank (int _rank) {
-	rank = _rank;
+const std::vector<LandAgent*> LandAgent::getNeighbors() const {
+	return neighbors;
+}
+void LandAgent::setNeighbors(std::vector<LandAgent*> _neighbors) {
+	neighbors = _neighbors;
 }
 
-int LandAgent::getX () {
-	return coord[0];
-}
-int LandAgent::getY () {
-	return coord[1];
-}
-const int* LandAgent::getCoord () const{
-	return coord;
-}
-void LandAgent::setX (int x) {
-	coord[0] = x;
-}
-void LandAgent::setY (int y) {
-	coord[1] = y;
-}
-void LandAgent::setCoord (int* _coord) {
-	coord[0] = _coord[0];
-	coord[1] = _coord[1];
-}
-
-repast::AgentId LandAgent::getLeaderId () {
-	return leaderId;
-}
-void LandAgent::setLeaderId (repast::AgentId _leaderId) {
-	leaderId = _leaderId;
-}
-
-float LandAgent::getPayoff () {
-	return payoff;
-}
-void LandAgent::setPayoff (float _payoff) {
-	payoff = _payoff;
-}
-
-int LandAgent::getStrategy () {
+int LandAgent::getStrategy() {
 	return strategy;
 }
 void LandAgent::setStrategy(int _strategy) {
 	strategy = _strategy;
 }
 
-int LandAgent::getAction () {
-	return action;
-}
-void LandAgent::setAction (int _action) {
-	action = _action;
-}
-
-int LandAgent::getNumOfDefNeighbours () {
-	return NumOfDefNeighbours;
-}
-void LandAgent::setNumOfDefNeighbours (int _numOfDefNeighbours) {
-	numOfDefNeighbours = _numOfDefNeighbours;
-}
-
-int LandAgent::getConsiderTrust () {
+int LandAgent::getConsiderTrust() {
 	return considerTrust;
 }
-void LandAgent::setConsiderTrust (int _considerTrust) {
+void LandAgent::setConsiderTrust(bool _considerTrust) {
 	considerTrust = _considerTrust;
 }
 
-int LandAgent::getTrsustLeader () {
+double LandAgent::getDeltaTrust() {
+	return deltaTrust;
+}
+
+void LandAgent::setDeltaTrust(double _deltaTrust) {
+	deltaTrust = _deltaTrust;
+}
+
+double LandAgent::getTrustThreshold() {
+	return trustThreshold;
+}
+
+void LandAgent::setTrustThreshold(double _trustThreshold) {
+	trustThreshold = _trustThreshold;
+}
+
+bool LandAgent::getIsIndependent() {
+	return isIndependent;
+}
+void LandAgent::setIsIndependent(bool _isIndependent) {
+	isIndependent = _isIndependent;
+}
+
+bool LandAgent::getIsLeader() {
+	return isLeader;
+}
+void LandAgent::setIsLeader(bool _isLeader) {
+	isLeader = _isLeader;
+}
+
+repast::AgentId LandAgent::getLeaderId() {
+	return leaderId;
+}
+void LandAgent::setLeaderId(repast::AgentId _leaderId) {
+	leaderId = _leaderId;
+}
+
+double LandAgent::getTrustLeader() {
 	return trustLeader;
 }
-void LandAgent::setTrustLeader (int _trustLeader) {
+void LandAgent::setTrustLeader(double _trustLeader) {
 	trustLeader = _trustLeader;
 }
-void LandAgent::incTrust (int delta) {
-	trustLeader += delta;
+void LandAgent::incTrustLeader() {
+	trustLeader += deltaTrust;
 }
-void LandAgent::decTrust (int delta) {
-	trustLeader -= delta;
-}
-
-int LandAgent::getThreshold () {
-	return threshold;
+void LandAgent::decTrustLeader() {
+	trustLeader -= deltaTrust;
 }
 
-void LandAgent::setThreshold (int _threshold) {
-	threshold = _threshold;
+int LandAgent::getAction() {
+	return action;
+}
+void LandAgent::setAction(int _action) {
+	action = _action;
 }
 
-const std::vector<LandAgent*> LandAgent::getNeighbours () const {
-	return neighbours;
+double LandAgent::getPayoff() {
+	return payoff;
 }
-void LandAgent::setNeighbours (std::vector<LandAgent*> _neighbours) {
-	neighbours(_neighbours);
+void LandAgent::setPayoff(double _payoff) {
+	payoff = _payoff;
 }
 
-float LandAgent::randomF () {
-	return ((float) std::rand())/RAND_MAX;
+int LandAgent::getPrevDefectors() {
+	return prevDefectors;
+}
+void LandAgent::setPrevDefectors(int _prevDefectors) {
+	prevDefectors = _prevDefectors;
 }
 
 void LandAgent::decideAction() {
-	if (leader == NULL) { // Agent is independent
-		// pTFT: _action = 0 if condition is satisfied, 1 otherwise.
-		if (strategy == 0)
-			action = (! _oldNumOfDefNeighbours/_numNeighbours > randomF() );
-		// TFT: _action = 0 if condition is satisfied, 1 otherwise.
-		else if (strategy == 1)
-			action = (! _oldNumOfDefNeighbours > _numNeighbours/2 );
-		// _action is chosen randomly.
-		else
-			action = rand()%2;
-	} else // Agent is part of a coalition
-		action = 0; // Will cooperate with members of coalition anyway
+
+}
+
+void LandAgent::calculatePayoff() {
+
+}
+
+void LandAgent::manageCoalition() {
+	if (agent->getId() == agent->getLeaderId()) // Leaders cannot leave nor join coalitions, neither they consider trust on a leader
+		return;
+	bool worstPayoff = true;
+	std::vector<LandAgent*> neighbours = agent->getNeighbours();
+	LandAgent* best = neighbours[0];
+	int nSize = neighbours.size();
+	for (int i=0; i < nSize; i++) {
+		if (neighbours[i]->getPayoff() < agent->getPayoff())
+			worstPayoff = false;
+		if (neighbours[i]->getPayoff() > best->getPayoff())
+			best = neighbours[i];
+	}
+	if (worstPayoff) {
+		if (agent->getLeaderId() == NULL) {
+			if (best->getLeaderId() == NULL)
+				best->setLeaderId(best->getId());
+			agent->setLeaderId(best->getId());
+		} else {
+			if (agent->getConsiderTrust()) {
+				agent->decTrust(deltaTrust);
+				if (agent->getThreshold() > agent->getTrustLeader())
+					agent->setLeaderId(NULL);
+			} else {
+				agent->setLeaderId(NULL);
+			}
+		}
+	} else if (agent->getLeaderId() != NULL)
+		agent->incTrust(deltaTrust);
 }
