@@ -1,6 +1,7 @@
 #ifndef  __LANDAGENT_H__
 #define  __LANDAGENT_H__
 
+#include <cstdlib>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/base_object.hpp>
 #include <repast_hpc/AgentId.h>
@@ -108,7 +109,7 @@ public:
 	/**
 	 * Agent decides to join/leave a coalition or stay as it is
 	 */
-	void manageCoalition()
+	void manageCoalition();
 };
 
 struct LandAgentPackage {

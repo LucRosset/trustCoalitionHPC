@@ -1,6 +1,7 @@
 #ifndef  __MODEL_H__
 #define  __MODEL_H__
 
+#include <cstdlib>
 #include <repast_hpc/AgentId.h>
 #include <repast_hpc/AgentRequest.h>
 #include <repast_hpc/initialize_random.h>

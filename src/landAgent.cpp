@@ -167,32 +167,31 @@ void LandAgent::calculatePayoff() {
 }
 
 void LandAgent::manageCoalition() {
-	if (agent->getId() == agent->getLeaderId()) // Leaders cannot leave nor join coalitions, neither they consider trust on a leader
+	if (id == leaderId) // Leaders cannot leave nor join coalitions, neither they consider trust on a leader
 		return;
 	bool worstPayoff = true;
-	std::vector<LandAgent*> neighbours = agent->getNeighbours();
 	LandAgent* best = neighbours[0];
 	int nSize = neighbours.size();
 	for (int i=0; i < nSize; i++) {
-		if (neighbours[i]->getPayoff() < agent->getPayoff())
+		if (neighbours[i]->getPayoff() < payoff)
 			worstPayoff = false;
 		if (neighbours[i]->getPayoff() > best->getPayoff())
 			best = neighbours[i];
 	}
 	if (worstPayoff) {
-		if (agent->getLeaderId() == NULL) {
+		if (leaderId == NULL) {
 			if (best->getLeaderId() == NULL)
 				best->setLeaderId(best->getId());
-			agent->setLeaderId(best->getId());
+			leaderId = best->getId();
 		} else {
-			if (agent->getConsiderTrust()) {
-				agent->decTrust(deltaTrust);
-				if (agent->getThreshold() > agent->getTrustLeader())
-					agent->setLeaderId(NULL);
+			if (considerTrust) {
+				trustLeader += deltaTrust;
+				if (trustThreshold > trustLeader)
+					leaderId = NULL;
 			} else {
-				agent->setLeaderId(NULL);
+				leaderId = NULL;
 			}
 		}
-	} else if (agent->getLeaderId() != NULL)
-		agent->incTrust(deltaTrust);
+	} else if (leaderId != NULL)
+		incTrust += deltaTrust;
 }

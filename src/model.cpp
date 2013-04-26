@@ -68,7 +68,7 @@ LandModel::LandModel(const std::string& propsFile, int argc, char* argv[],
 		repast::AgentId id(i, rank, 0);
 
 		// Define the strategy
-		if (strategy == 3) {
+		if (strategyType == 3) {
 			strategy = (int) randStrategy.next();
 			std::cout << strategy << ";" << std::endl;
 		}
