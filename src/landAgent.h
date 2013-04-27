@@ -15,7 +15,7 @@ private:
 	repast::AgentId id;
 	int x;
 	int y;
-	int strategy;
+	int strategy; // 0 = Random; 1 = TFT; 2 = pTFT
 	std::vector<LandAgent*> neighbors;
 
 	// Trust information
@@ -28,11 +28,11 @@ private:
 	bool isLeader;
 
 	// Leader information
-	repast::AgentId leaderId;
+	int leader[2];
 	double trustLeader;
 
 	// Dynamic information
-	int action;
+	int action; // 0 = deffect; 1 = cooperate
 	double payoff;
 	int prevDefectors;
 
@@ -74,8 +74,9 @@ public:
 	bool getIsLeader();
 	void setIsLeader(bool _isLeader);
 
-	repast::AgentId getLeaderId();
-	void setLeaderId(repast::AgentId _leaderId);
+	int getLeaderX();
+	int getLeaderY();
+	void setLeaderXY(int _x, int _y);
 
 	double getTrustLeader();
 	void setTrustLeader(double _trustLeader);
@@ -104,7 +105,7 @@ public:
 	/**
 	 * Agent calculates its payoff based on its own action and its neighbors' actions
 	 */
-	void calculatePayoff();
+	void calculatePayoff(int payoffT, int payoffR, int payoffP, int payoffS);
 
 	/**
 	 * Agent decides to join/leave a coalition or stay as it is
@@ -128,6 +129,7 @@ struct LandAgentPackage {
 		ar & trustThreshold;
 		ar & isIndependent;
 		ar & isLeader;
+		ar & leader;
 		ar & action;
 	}
 
@@ -142,6 +144,7 @@ struct LandAgentPackage {
 	double trustThreshold;
 	bool isIndependent;
 	bool isLeader;
+	int leader[2];
 	int action;
 
 	repast::AgentId getId() const {

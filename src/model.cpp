@@ -182,7 +182,7 @@ void LandModel::step() {
 	for (int i = 0; i < dimX * dimY; i++) {
 		repast::AgentId id = repast::AgentId(i, rank, 0);
 		if (grid->getLocation(id, position)) {
-			agents.getAgent(id)->updatePayoff();
+			agents.getAgent(id)->updatePayoff(payoffT, payoffR, payoffP, payoffS);
 		}
 	}
 	// Apply Tax; Only leaders
@@ -190,22 +190,22 @@ void LandModel::step() {
 		repast::AgentId id = repast::AgentId(i, rank, 0);
 		if (grid->getLocation(id, position)) {
 			LandAgent* lead = agents.getAgent(id);
-			if (lead->getId() == lead->getLeaderId())
+			if (lead->getX() == lead->getLeaderX() && lead->getY() == lead->getleaderY())
 				applyTax(lead);
 		}
 	}
-	// Agent decides to join a coalition, leave the coalition or stay as it is
+	// Agent decides to join a coalition, leave the coalition or stay as it is; Only non-leaders
 	for (int i = 0; i < dimX * dimY; i++) {
 		repast::AgentId id = repast::AgentId(i, rank, 0);
 		if (grid->getLocation(id, position))
 			agents.getAgent(id)->manageCoalition();
 	}
-	// Leaders check if coalition still has other members
+	// Leaders check if coalition still has other members; Only leaders
 	for (int i = 0; i < dimX * dimY; i++) {
 		repast::AgentId id = repast::AgentId(i, rank, 0);
 		if (grid->getLocation(id, position)) {
 			LandAgent* lead = agents.getAgent(id);
-			if (lead->getId() == lead->getLeaderId())
+			if (lead->getX() == lead->getLeaderX() && lead->getY() == lead->getleaderY())
 				amIStillLeader(agents.getAgent(id));
 		}
 	}
@@ -239,10 +239,12 @@ void LandModel::applyTax(LandAgent* lead) {
 
 void LandModel::amIStillLeader (LandAgent* lead) {
 	LandAgent* ag;
+	int X = lead->getX();
+	int Y = lead->getY();
 	for (int i = 0; i < dimX; i++) {
 		for (int j = 0; j < dimY; j++) {
 			ag = grid->getObjectAt(repast::Point<int>(i, j));
-			if (ag->getLeaderId() == leadId && ag->getId() != lead->getId()) {
+			if (ag->getLeaderX() == X && ag->getLeaderY() == Y && ag->getId() != lead->getId()) {
 				return;
 			}
 		}

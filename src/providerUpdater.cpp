@@ -11,7 +11,7 @@ LandAgent* ProviderUpdater::createAgent(LandAgentPackage& content) {
 	return new LandAgent(content.getId(), content.x, content.y,
 			content.strategy, content.considerTrust, content.deltaTrust,
 			content.trustThreshold, content.isIndependent, content.isLeader,
-			content.action);
+			content.leader /*?!?!?*/, content.action);
 }
 
 void ProviderUpdater::createAgents(std::vector<LandAgentPackage>& contents,
@@ -22,7 +22,7 @@ void ProviderUpdater::createAgents(std::vector<LandAgentPackage>& contents,
 				new LandAgent(agent->getId(), agent->x, agent->y,
 						agent->strategy, agent->considerTrust,
 						agent->deltaTrust, agent->trustThreshold,
-						agent->isIndependent, agent->isLeader, agent->action));
+						agent->isIndependent, agent->isLeader, agent->leader /*?!?!?*/, agent->action));
 	}
 }
 
@@ -33,7 +33,8 @@ void ProviderUpdater::provideContent(LandAgent* agent,
 			agent->getX(), agent->getY(), agent->getStrategy(),
 			agent->getConsiderTrust(), agent->getDeltaTrust(),
 			agent->getTrustThreshold(), agent->getIsIndependent(),
-			agent->getIsLeader(), agent->getAction() };
+			agent->getIsLeader(), [agent->getLeaderX(),agent->getleaderY()], /*?!?!?*/
+			agent->getAction() };
 	out.push_back(package);
 }
 
@@ -50,7 +51,7 @@ void ProviderUpdater::provideContent(const repast::AgentRequest& request,
 					agent->getStrategy(), agent->getConsiderTrust(),
 					agent->getDeltaTrust(), agent->getTrustThreshold(),
 					agent->getIsIndependent(), agent->getIsLeader(),
-					agent->getAction() };
+					[agent->getLeaderX(),agent->getleaderY()] /*?!?!?*/, agent->getAction() };
 			out.push_back(content);
 		}
 	}
@@ -68,6 +69,7 @@ void ProviderUpdater::updateAgent(const LandAgentPackage& content) {
 		copy->setTrustThreshold(content.trustThreshold);
 		copy->setIsIndependent(content.isIndependent);
 		copy->setIsLeader(content.isLeader);
+		copy->setLeaderXY(content.leader[0], content.leader[1]); /*?!?!?*/
 		copy->setAction(content.action);
 	}
 }

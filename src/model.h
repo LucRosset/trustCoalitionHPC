@@ -59,10 +59,10 @@ private:
 	int dimY;
 
 	// Payoff values
-	int payoffT;
-	int payoffR;
-	int payoffP;
-	int payoffS;
+	int payoffT; //
+	int payoffR; // reward
+	int payoffP; // punishment
+	int payoffS; // sucker
 
 	// Model information
 	int rounds;
